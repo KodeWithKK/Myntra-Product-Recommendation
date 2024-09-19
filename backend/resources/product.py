@@ -3,6 +3,7 @@ import json
 from database.db import dbi
 from flask import jsonify, request
 from flask_restful import Resource
+from ml_model import give_recommendation
 
 
 # Total Products: 14268
@@ -62,7 +63,22 @@ class GetProduct(Resource):
 
             if product:
                 product["_id"] = str(product["_id"])
-                return jsonify(product)
+
+                similar_product_ids = give_recommendation(int(id))
+                similar_products = []
+
+                for p_id in similar_product_ids:
+                    sim_product = dbi.db.products.find_one({"p_id": int(p_id)})
+
+                    if sim_product:
+                        sim_product["_id"] = str(sim_product["_id"])
+                        similar_products.append(sim_product)
+                    else:
+                        return {"message": "Similar Product not found"}, 404
+
+                return jsonify(
+                    {"product": product, "similarProducts": similar_products}
+                )
             else:
                 return {"message": "Product not found"}, 404
 

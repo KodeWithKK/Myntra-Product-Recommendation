@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProductsContainer from "@/components/ProductsContainer";
-import MyProduct from "@/components/Product";
+import ProductCard from "@/components/ProductCard";
 import Loader from "@/lib/core/Loader";
 import SearchBar from "@/components/SearchBar";
 import Button from "@/lib/core/Button";
@@ -58,13 +58,7 @@ function SearchResultPage() {
   }, [searchQuery, refetch]);
 
   return (
-    <div className="px-[8%] py-8">
-      <h1 className="mb-6 text-center text-orange-800">
-        <Link to="/">Myntra</Link>
-      </h1>
-
-      <SearchBar />
-
+    <div className="">
       <p className="mt-4 text-[15px]">
         Showing search Result for:{" "}
         <span className="font-medium">{searchQuery}</span>
@@ -73,7 +67,9 @@ function SearchResultPage() {
       <ProductsContainer className="mb-6 mt-2">
         {products?.pages
           .flatMap((product) => product.results)
-          .map((product) => <MyProduct key={product.p_id} product={product} />)}
+          .map((product) => (
+            <ProductCard key={product.p_id} product={product} />
+          ))}
       </ProductsContainer>
 
       {isFetching && (

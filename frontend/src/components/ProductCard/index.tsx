@@ -4,7 +4,7 @@ import type { Product } from "@/types/type";
 import { formatPrice } from "@/utils/formatters";
 import { useState } from "react";
 
-function Product({ product }: Readonly<{ product: Product }>) {
+function ProductCard({ product }: Readonly<{ product: Product }>) {
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
 
   return (
@@ -40,4 +40,4 @@ function Product({ product }: Readonly<{ product: Product }>) {
   );
 }
 
-export default Product;
+export default ProductCard;

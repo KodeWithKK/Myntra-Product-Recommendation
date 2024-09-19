@@ -1,8 +1,21 @@
 import { IconProps } from "@/types/type";
+import { cn } from "@/utils/cn";
 
-export default function Loader() {
+interface LoaderProps {
+  display?: "bar" | "screen" | "inline";
+}
+
+export default function Loader({ display = "screen" }: Readonly<LoaderProps>) {
   return (
-    <LoaderIcon className="h-12 w-12 origin-center animate-spin text-orange-800" />
+    <div
+      className={cn(
+        "flex justify-center",
+        display === "screen" && "h-[calc(100vh-150px)] items-center",
+        display === "inline" && "inline-block",
+      )}
+    >
+      <LoaderIcon className="h-12 w-12 origin-center animate-spin text-orange-800" />
+    </div>
   );
 }
 
