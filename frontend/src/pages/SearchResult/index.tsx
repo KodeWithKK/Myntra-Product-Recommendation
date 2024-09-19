@@ -28,7 +28,7 @@ const fetchProducts = async ({
   };
 };
 
-function SearchResult() {
+function SearchResultPage() {
   const { searchQuery } = useParams();
 
   const {
@@ -89,4 +89,4 @@ function SearchResult() {
   );
 }
 
-export default SearchResult;
+export default SearchResultPage;

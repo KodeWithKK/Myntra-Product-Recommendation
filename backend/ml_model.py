@@ -1,37 +1,30 @@
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import sigmoid_kernel
+from sklearn.metrics.pairwise import cosine_similarity
 
-products_df = pd.read_csv("./data/Fashion Dataset.csv")
+products_df = pd.read_csv("./data/cleaned_myntra_dataset_backend.csv")
+print(products_df.shape)
 
 
-tvf = TfidfVectorizer(
-    min_df=5,
-    max_features=None,
-    strip_accents="unicode",
-    analyzer="word",
-    token_pattern=r"\w{1,}",
-    ngram_range=(1, 3),
-    stop_words="english",
+tfidf_vectorizer = TfidfVectorizer(stop_words="english")
+tfidf_matrix_content = tfidf_vectorizer.fit_transform(products_df["tags"])
+cosine_similarities_content = cosine_similarity(
+    tfidf_matrix_content, tfidf_matrix_content
 )
 
-# filling NaN with empty string
-products_df["description"] = products_df["description"].fillna("")
 
-tfv_matrix = tvf.fit_transform(products_df["description"])
-sig = sigmoid_kernel(tfv_matrix, tfv_matrix)
-indices = pd.Series(products_df.index, index=products_df["name"]).drop_duplicates()
+indices = pd.Series(products_df.index, index=products_df["p_id"]).drop_duplicates()
 
 
-def give_recommendation(name, sig=sig):
-    idx = indices[name]  # Get the index corresponding to the original name
-    sig_scores = list(enumerate(sig[idx]))  # get the pairwise similarity scores
-    sig_scores = sorted(sig_scores, key=lambda x: x[1], reverse=True)
-    sig_scores = sig_scores[1:11]  # score of the top 10 most similar products
-    products_indices = [i[0] for i in sig_scores]  # products indices
-    print(products_indices)
-    return products_df["name"].iloc[products_indices]  # top 10 most similar products
+def give_recommendation(p_id):
+    idx = indices[p_id]
+    cosine_scores = list(enumerate(cosine_similarities_content[idx]))
+    cosine_scores = sorted(cosine_scores, key=lambda x: x[1], reverse=True)
+    cosine_scores = cosine_scores[1:11]
+    print(cosine_scores)
+    products_indices = [i[0] for i in cosine_scores]
+    return products_df["name"].iloc[products_indices]
 
 
-top10Products = give_recommendation("AHIKA Women Black & Green Printed Straight Kurta")
+top10Products = give_recommendation(16524740)
 print(top10Products)

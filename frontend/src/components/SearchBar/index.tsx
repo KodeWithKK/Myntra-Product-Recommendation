@@ -1,7 +1,12 @@
+import { cn } from "@/utils/cn";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function SearchBar() {
+interface SearchBarProps {
+  className?: string;
+}
+
+function SearchBar({ className }: Readonly<SearchBarProps>) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const navigate = useNavigate();
 
@@ -14,11 +19,11 @@ function SearchBar() {
   );
 
   return (
-    <form onSubmit={handleSearch}>
+    <form onSubmit={handleSearch} className={cn("mx-auto w-[60%]", className)}>
       <input
         type="text"
         name="searchBar"
-        className="mx-auto block w-[60%] rounded-md focus:border-orange-800 focus:ring-orange-800"
+        className="block w-full rounded-md focus:border-orange-800 focus:ring-orange-800"
         placeholder="Search Products"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}

@@ -1,12 +1,14 @@
 import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import SearchResult from "./pages/SearchResult";
+import HomePage from "./pages/Home";
+import SearchResultPage from "./pages/SearchResult";
+import ProductPage from "./pages/Product";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/search/:searchQuery" element={<SearchResult />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/search/:searchQuery" element={<SearchResultPage />} />
+      <Route path="/p/:productId" element={<ProductPage />} />
     </Routes>
   );
 }

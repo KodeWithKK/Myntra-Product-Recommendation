@@ -1,11 +1,11 @@
 import json
 
-from database.models import Product
+from database.db import dbi
 from flask import jsonify, request
 from flask_restful import Resource
 
 
-# Total Products: 14435
+# Total Products: 14268
 class AddProductsApi(Resource):
     def post(self):
         body = request.get_json()
@@ -23,16 +23,14 @@ class AddProductsApi(Resource):
         products = []
 
         for item in data[int(start) : int(end)]:
-            product = Product(**item)
-            products.append(product)
+            if item["p_attributes"] == "undefined":
+                item["p_attributes"] = {}
+            products.append(item)
 
-        batch_size = 5000
-        for i in range(0, len(products), batch_size):
-            batch = products[i : i + batch_size]
-            try:
-                Product.objects.insert(batch)
-            except Exception as e:
-                print(f"Error inserting products: {e}")
+        try:
+            dbi.db.products.insert_many(products)
+        except Exception as e:
+            return {"error": f"Error inserting products: {e}"}, 500
 
         return {"message": "Products added successfully"}, 200
 
@@ -42,14 +40,34 @@ class GetProducts(Resource):
         page = int(request.args.get("page", 1))
         per_page = int(request.args.get("per_page", 20))
         skip = (page - 1) * per_page
-        products = Product.objects.skip(skip).limit(per_page)
-        return jsonify(products)
+
+        products = (
+            dbi.db.products.find({"ratingCount": {"$exists": True, "$ne": ""}})
+            .sort("ratingCount", -1)
+            .skip(skip)
+            .limit(per_page)
+        )
+
+        products_list = list(products)
+        for product in products_list:
+            product["_id"] = str(product["_id"])
+
+        return jsonify(products_list)
 
 
 class GetProduct(Resource):
     def get(self, id):
-        product = Product.objects.get(p_id=id)
-        return jsonify(product)
+        try:
+            product = dbi.db.products.find_one({"p_id": int(id)})
+
+            if product:
+                product["_id"] = str(product["_id"])
+                return jsonify(product)
+            else:
+                return {"message": "Product not found"}, 404
+
+        except Exception as e:
+            return {"error": f"Error fetching product: {e}"}, 500
 
 
 class SearchProducts(Resource):
@@ -59,7 +77,11 @@ class SearchProducts(Resource):
         per_page = int(request.args.get("per_page", 20))
         skip = (page - 1) * per_page
 
-        # Case-insensitive search in 'name'
-        search_query = Product.objects.filter(name__icontains=query)
-        results = search_query.skip(skip).limit(per_page)
-        return jsonify(results)
+        search_query = {"name": {"$regex": query, "$options": "i"}}
+        results = dbi.db.products.find(search_query).skip(skip).limit(per_page)
+
+        results_list = list(results)
+        for result in results_list:
+            result["_id"] = str(result["_id"])
+
+        return jsonify(results_list)

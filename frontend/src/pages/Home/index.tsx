@@ -19,7 +19,7 @@ const fetchProducts = async ({ page }: { page: number }) => {
   };
 };
 
-function Home() {
+function HomePage() {
   const {
     data: products,
     fetchNextPage,
@@ -56,4 +56,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default HomePage;

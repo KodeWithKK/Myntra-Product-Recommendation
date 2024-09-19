@@ -10,7 +10,9 @@ export interface Product {
   ratingCount: number;
   avg_rating: number;
   description: string;
-  p_attributes: unknown;
+  p_attributes: {
+    [key: string]: string;
+  };
 }
 
 export type IconProps = SVGProps<SVGSVGElement>;

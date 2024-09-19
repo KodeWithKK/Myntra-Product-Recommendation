@@ -4,8 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask-mongoengine = "*"
-flask = "==2.2.5"
+flask = "*"
 flask-restful = "*"
 flask-bcrypt = "*"
 flask-jwt-extended = "*"
@@ -14,6 +13,7 @@ numpy = "*"
 pandas = "*"
 scikit-learn = "*"
 flask-cors = "*"
+flask-pymongo = "*"
 
 [dev-packages]
 
