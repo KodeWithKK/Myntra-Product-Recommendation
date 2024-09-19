@@ -21,6 +21,7 @@ function HomePage() {
   const {
     data: products,
     fetchNextPage,
+    isLoading,
     isFetching,
   } = useInfiniteQuery({
     queryKey: ["products"],
@@ -28,6 +29,10 @@ function HomePage() {
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextPage,
   });
+
+  if (isLoading) {
+    return <Loader display="screen" />;
+  }
 
   return (
     <>
@@ -41,6 +46,7 @@ function HomePage() {
           ))}
       </ProductsContainer>
 
+      {isLoading && <Loader display="screen" />}
       {isFetching && <Loader display="bar" />}
 
       <div className="mt-8 flex justify-center gap-3">

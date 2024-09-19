@@ -1,9 +1,8 @@
 import { useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import ProductsContainer from "@/components/ProductsContainer";
 import ProductCard from "@/components/ProductCard";
 import Loader from "@/lib/core/Loader";
-import SearchBar from "@/components/SearchBar";
 import Button from "@/lib/core/Button";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { Product } from "@/types/type";
@@ -12,7 +11,7 @@ import api from "@/utils/api";
 const fetchProducts = async ({
   searchQuery,
   page = 1,
-  per_page = 10,
+  per_page = 20,
 }: {
   searchQuery: string;
   page: number;
@@ -35,6 +34,7 @@ function SearchResultPage() {
     data: products,
     fetchNextPage,
     isFetching,
+    isLoading,
     refetch,
   } = useInfiniteQuery({
     queryKey: ["search-products", searchQuery],
@@ -57,6 +57,10 @@ function SearchResultPage() {
     }
   }, [searchQuery, refetch]);
 
+  if (isLoading) {
+    return <Loader display="screen" />;
+  }
+
   return (
     <div className="">
       <p className="mt-4 text-[15px]">
@@ -72,13 +76,9 @@ function SearchResultPage() {
           ))}
       </ProductsContainer>
 
-      {isFetching && (
-        <div className="flex justify-center">
-          <Loader />
-        </div>
-      )}
+      {isFetching && <Loader display="bar" />}
 
-      <div className="mt-6 flex justify-center gap-3">
+      <div className="mt-8 flex justify-center">
         <Button onClick={fetchNextPage}>Load More</Button>
       </div>
     </div>

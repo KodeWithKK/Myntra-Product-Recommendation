@@ -37,6 +37,10 @@ function ProductPage() {
     return <p>Product Not Found</p>;
   }
 
+  if (isLoading) {
+    return <Loader display="screen" />;
+  }
+
   const product = data?.product;
   const similarProducts = data?.similarProducts;
 
@@ -123,8 +127,6 @@ function ProductPage() {
           </div>
         </div>
       )}
-
-      {isLoading && <Loader display="screen" />}
     </div>
   );
 }
