@@ -25,7 +25,7 @@ function AvatarIcon(props: Readonly<IconProps>) {
 
 function SearchIcon(props: Readonly<IconProps>) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" {...props}>
+    <svg viewBox="0 0 24 24" {...props}>
       <g fill="none" fillRule="evenodd">
         <path d="M12.593 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035q-.016-.005-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002-.185.093-.01.01-.003.011.018.43.005.012.008.007.201.093q.019.005.029-.008l.004-.014-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 00-.027.006l-.006.014-.034.614q.001.018.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01z" />
         <path
@@ -37,4 +37,15 @@ function SearchIcon(props: Readonly<IconProps>) {
   );
 }
 
-export { StarIcon, AvatarIcon, SearchIcon };
+function ArrowUpIcon(props: Readonly<IconProps>) {
+  return (
+    <svg viewBox="0 0 1024 1024" {...props}>
+      <path
+        fill="currentColor"
+        d="M104.704 685.248a64 64 0 0090.496 0l316.8-316.8 316.8 316.8a64 64 0 0090.496-90.496L557.248 232.704a64 64 0 00-90.496 0L104.704 594.752a64 64 0 000 90.496"
+      />
+    </svg>
+  );
+}
+
+export { StarIcon, AvatarIcon, SearchIcon, ArrowUpIcon };

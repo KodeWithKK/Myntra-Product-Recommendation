@@ -1,31 +1,25 @@
 import { useEffect, useRef, Fragment } from "react";
 import { useParams } from "react-router-dom";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import ProductCard from "@/components/ProductCard";
 import Loader from "@/lib/core/Loader";
-import api from "@/utils/api";
-import type { Product } from "@/types/type";
-import { StarIcon } from "@/lib/icons";
+import useCarousel from "@/hooks/useCarousel";
+import useApi from "./useApi";
+import { StarIcon, ArrowUpIcon } from "@/lib/icons";
 import styles from "./Product.module.css";
-
-interface ApiResponse {
-  product: Product;
-  similarProducts: Product[];
-}
-
-const fetchProduct = async (productId: string) => {
-  return await api.get<ApiResponse>(`/product/${productId}`);
-};
 
 function ProductPage() {
   const { productId } = useParams();
   const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["product", productId],
-    queryFn: () => fetchProduct(productId as string),
-    placeholderData: keepPreviousData,
-  });
+  const {
+    carouselXTranslate,
+    setCarouselXTranslate,
+    handleLeftButton,
+    handleRightButton,
+  } = useCarousel({ carouselRef });
+
+  const { data, isFetching } = useApi({ productId: productId as string });
 
   useEffect(() => {
     if (descriptionRef.current) {
@@ -33,11 +27,11 @@ function ProductPage() {
     }
   }, [data?.product?.description]);
 
-  if (!productId) {
-    return <p>Product Not Found</p>;
-  }
+  useEffect(() => {
+    setCarouselXTranslate(0);
+  }, [setCarouselXTranslate, productId]);
 
-  if (isLoading) {
+  if (isFetching) {
     return <Loader display="screen" />;
   }
 
@@ -120,10 +114,32 @@ function ProductPage() {
         <div className="mt-5">
           <h3 className="mb-5">Similar Products</h3>
 
-          <div className="flex gap-2 overflow-hidden *:w-[200px]">
-            {similarProducts.map((product) => (
-              <ProductCard key={product?.p_id} product={product} />
-            ))}
+          <div className="relative">
+            <button
+              className="absolute left-[-20px] top-[50%] z-[10] grid h-10 w-10 translate-y-[calc(-50%-30px)] place-items-center rounded-full bg-white shadow-md"
+              onClick={handleLeftButton}
+            >
+              <ArrowUpIcon className="w-6 -rotate-90" />
+            </button>
+
+            <div className="overflow-hidden">
+              <div
+                ref={carouselRef}
+                style={{ transform: `translateX(${carouselXTranslate}px)` }}
+                className="flex gap-2 transition-all duration-500 ease-in-out *:min-w-[200px]"
+              >
+                {similarProducts.map((product) => (
+                  <ProductCard key={product?.p_id} product={product} />
+                ))}
+              </div>
+            </div>
+
+            <button
+              className="absolute right-[-20px] top-[50%] z-[10] grid h-10 w-10 translate-y-[calc(-50%-30px)] place-items-center rounded-full bg-white shadow-md"
+              onClick={handleRightButton}
+            >
+              <ArrowUpIcon className="w-6 rotate-90" />
+            </button>
           </div>
         </div>
       )}

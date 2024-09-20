@@ -1,75 +1,76 @@
 import { useState, useCallback } from "react";
 
-interface CarousalProps {
-  carousalRef: React.RefObject<HTMLDivElement>;
+interface CarouselProps {
+  carouselRef: React.RefObject<HTMLDivElement>;
 }
 
-function useCarousal({ carousalRef }: CarousalProps): {
-  carousalXTranslate: number;
+function useCarousel({ carouselRef }: CarouselProps): {
+  carouselXTranslate: number;
+  setCarouselXTranslate: (value: number) => void;
   handleLeftButton: () => void;
   handleRightButton: () => void;
 } {
   const [currentCardPos, setCurrentCardPos] = useState<number>(0);
-  const [carousalXTranslate, setCarousalXTranslate] = useState<number>(0);
+  const [carouselXTranslate, setCarouselXTranslate] = useState<number>(0);
 
-  const findCarousalMeta = useCallback((): {
+  const findCarouselMeta = useCallback((): {
     totalVisibleCards: number;
-    carousalGap: number;
+    carouselGap: number;
     cardWidth: number;
     totalCards: number;
   } => {
-    const carousalElm = carousalRef.current;
+    const carouselElm = carouselRef.current;
 
-    if (carousalElm) {
-      const firstCard = carousalElm.firstChild as HTMLElement;
+    if (carouselElm) {
+      const firstCard = carouselElm.firstChild as HTMLElement;
       const firstCardWidth = firstCard.getBoundingClientRect().width;
-      const carousalWidth = carousalElm.getBoundingClientRect().width;
-      const carousalGap = Number(
-        window.getComputedStyle(carousalElm).gap.replace("px", ""),
+      const carouselWidth = carouselElm.getBoundingClientRect().width;
+      const carouselGap = Number(
+        window.getComputedStyle(carouselElm).gap.replace("px", ""),
       );
       const totalVisibleCards = Math.trunc(
-        carousalWidth / (firstCardWidth + carousalGap),
+        carouselWidth / (firstCardWidth + carouselGap),
       );
 
       return {
         totalVisibleCards,
-        carousalGap,
+        carouselGap,
         cardWidth: firstCardWidth,
-        totalCards: carousalElm.childElementCount,
+        totalCards: carouselElm.childElementCount,
       };
     }
 
     return {
       totalVisibleCards: 0,
-      carousalGap: 0,
+      carouselGap: 0,
       cardWidth: 0,
       totalCards: 0,
     };
-  }, [carousalRef]);
+  }, [carouselRef]);
 
   const handleLeftButton = useCallback(() => {
-    const { totalVisibleCards, carousalGap, cardWidth, totalCards } =
-      findCarousalMeta();
+    const { totalVisibleCards, carouselGap, cardWidth, totalCards } =
+      findCarouselMeta();
 
     if (totalVisibleCards >= totalCards) {
       setCurrentCardPos(0);
-      setCarousalXTranslate(0);
+      setCarouselXTranslate(0);
       return;
     }
     const nextCardPos = Math.max(0, currentCardPos - totalVisibleCards);
     setCurrentCardPos(nextCardPos);
-    setCarousalXTranslate(
-      -1 * (nextCardPos * cardWidth + nextCardPos * carousalGap),
+    setCarouselXTranslate(
+      -1 * (nextCardPos * cardWidth + nextCardPos * carouselGap),
     );
-  }, [currentCardPos, findCarousalMeta]);
+  }, [currentCardPos, findCarouselMeta]);
 
   const handleRightButton = useCallback(() => {
-    const { totalVisibleCards, carousalGap, cardWidth, totalCards } =
-      findCarousalMeta();
+    const { totalVisibleCards, carouselGap, cardWidth, totalCards } =
+      findCarouselMeta();
 
     if (totalVisibleCards >= totalCards) {
       setCurrentCardPos(0);
-      setCarousalXTranslate(0);
+      setCarouselXTranslate(0);
       return;
     }
     const nextCardPos = Math.min(
@@ -77,12 +78,17 @@ function useCarousal({ carousalRef }: CarousalProps): {
       totalCards - totalVisibleCards,
     );
     setCurrentCardPos(nextCardPos);
-    setCarousalXTranslate(
-      -1 * (nextCardPos * cardWidth + nextCardPos * carousalGap),
+    setCarouselXTranslate(
+      -1 * (nextCardPos * cardWidth + nextCardPos * carouselGap),
     );
-  }, [currentCardPos, findCarousalMeta]);
+  }, [currentCardPos, findCarouselMeta]);
 
-  return { carousalXTranslate, handleLeftButton, handleRightButton };
+  return {
+    carouselXTranslate,
+    setCarouselXTranslate,
+    handleLeftButton,
+    handleRightButton,
+  };
 }
 
-export default useCarousal;
+export default useCarousel;
