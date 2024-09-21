@@ -1,6 +1,3 @@
-// Read Blog to know more: https://www.newline.co/@bespoyasov/how-to-use-fetch-with-typescript--a81ac257
-// Example Api call: const user = await api.get<User>('/api/users/42');
-
 const baseUrl = import.meta.env.VITE_BACKEND_BASE_URL;
 
 function request<TResponse>(
