@@ -29,10 +29,10 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <App />
       </BrowserRouter>
 
-      <ReactQueryDevtoolsProduction
+      {/* <ReactQueryDevtoolsProduction
         initialIsOpen={false}
         buttonPosition="bottom-left"
-      />
+      /> */}
     </QueryClientProvider>
   </React.StrictMode>,
 );
