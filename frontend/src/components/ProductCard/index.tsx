@@ -17,6 +17,7 @@ function ProductCard({ product }: Readonly<{ product: Product }>) {
           onLoad={() => {
             setIsImageLoaded(true);
           }}
+          referrerPolicy="no-referrer"
         />
 
         {isImageLoaded && product.avg_rating > 0 && (
