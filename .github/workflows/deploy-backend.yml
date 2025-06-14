@@ -25,9 +25,8 @@ jobs:
       - name: Install Dependencies
         run: |
           cd backend
-          uv pip install -r pyproject.toml --resolve
           mkdir -p package
-          uv pip install -r pyproject.toml --no-deps --target package
+          uv pip install -r pyproject.toml --target packagee
 
       - name: Create .env file from Secret
         run: |
