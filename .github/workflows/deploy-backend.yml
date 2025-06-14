@@ -39,6 +39,15 @@ jobs:
           cd ..
           zip -g function.zip app.py .env
 
+      - name: Echo ZIP File Size and Validate Limit
+        run: |
+          ZIP_SIZE_MB=$(du -m backend/function.zip | cut -f1)
+          echo "ZIP file size is ${ZIP_SIZE_MB} MB"
+          if [ "$ZIP_SIZE_MB" -gt 5120 ]; then
+            echo "❌ ZIP file size exceeds 5GB limit. Aborting deployment."
+            exit 1
+          fi
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -46,8 +55,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
-      - name: Deploy to Lambda
+      - name: Upload ZIP to S3
+        run: |
+          aws s3 cp backend/function.zip s3://k3-lambda-artifacts/function.zip
+
+      - name: Deploy to Lambda from S3
         run: |
           aws lambda update-function-code \
             --function-name flask-backend-lambda \
-            --zip-file fileb://backend/function.zip
+            --s3-bucket k3-lambda-artifacts \
+            --s3-key function.zip
+
+      - name: Optional Cleanup - Remove ZIP from S3
+        run: |
+          aws s3 rm s3://k3-lambda-artifacts/function.zip
