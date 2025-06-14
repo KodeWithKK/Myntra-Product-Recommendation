@@ -4,7 +4,7 @@ on:
   workflow_dispatch: # allows manual trigger
   # push:
   #   branches:
-  #     - main # triggers workflow automatically on push to main
+  #     - main
 
 jobs:
   deploy:
@@ -22,14 +22,22 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
+      - name: Install App Dependencies (Only App Code)
+        run: |
+          cd backend
+          mkdir -p package
+          uv pip install -r pyproject.toml --target package
+
       - name: Create .env file from Secret
         run: |
           echo "${{ secrets.BACKEND_ENV_FILE }}" > backend/.env
 
-      - name: Zip Lambda Function Code Only (excluding dependencies)
+      - name: Zip Lambda Function Code (excluding heavy deps)
         run: |
-          cd backend
-          zip -r function.zip app.py .env
+          cd backend/package
+          zip -r ../function.zip .
+          cd ..
+          zip -g function.zip app.py .env
 
       - name: Echo ZIP File Size and Validate Limit
         run: |
@@ -47,47 +55,58 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
-      - name: Create Lambda Layer if Not Exists (by hash)
+      # ---------- Lambda Layer Creation from S3 ----------
+      - name: Build and Upload Lambda Layer ZIP to S3
         run: |
-          set -e
-          LAYER_NAME="flask-layer-k3"
           mkdir -p lambda_layer/python
           uv pip compile backend/pyproject.toml --output-file requirements.txt
           uv pip install -r requirements.txt --target lambda_layer/python
+
           cd lambda_layer
           zip -r ../layer.zip .
           cd ..
-          HASH=$(shasum -a 256 layer.zip | awk '{ print $1 }')
-          echo "📦 Layer content SHA256: $HASH"
 
-          EXISTING=$(aws lambda list-layer-versions --layer-name $LAYER_NAME --query "LayerVersions[?Description=='$HASH'].Version" --output text)
+          aws s3 cp layer.zip s3://k3-lambda-artifacts/layers/flask-layer-k3.zip
+
+      - name: Publish Lambda Layer from S3
+        run: |
+          LAYER_NAME="flask-layer-k3"
+          REGION="ap-south-1"
+          HASH=$(shasum -a 256 layer.zip | awk '{ print $1 }')
+          echo "📦 Layer SHA256: $HASH"
+
+          EXISTING=$(aws lambda list-layer-versions \
+            --layer-name $LAYER_NAME \
+            --query "LayerVersions[?Description=='$HASH'].Version" \
+            --output text)
+
           if [ -z "$EXISTING" ]; then
-            echo "📤 Publishing new Lambda Layer..."
+            echo "📤 Publishing layer from S3..."
             LAYER_VERSION=$(aws lambda publish-layer-version \
               --layer-name $LAYER_NAME \
               --description "$HASH" \
-              --zip-file fileb://layer.zip \
+              --content S3Bucket=k3-lambda-artifacts,S3Key=layers/flask-layer-k3.zip \
               --compatible-runtimes python3.11 \
               --query 'Version' --output text)
-            echo "✅ New Layer Version: $LAYER_VERSION"
+            echo "✅ Published new layer version: $LAYER_VERSION"
           else
-            echo "✅ Layer with same hash already exists: version $EXISTING"
+            echo "✅ Layer already exists: version $EXISTING"
             LAYER_VERSION=$EXISTING
           fi
 
           echo "LAYER_VERSION=$LAYER_VERSION" >> $GITHUB_ENV
 
-      - name: Upload ZIP to S3
+      # ---------- Upload Lambda Function ZIP ----------
+      - name: Upload Lambda Function ZIP to S3
         run: |
           aws s3 cp backend/function.zip s3://k3-lambda-artifacts/function.zip
 
+      # ---------- Create Lambda Function If Not Exists ----------
       - name: Create Lambda Function if Not Exists
         run: |
           set -e
           FUNCTION_NAME="flask-backend-lambda"
           ROLE_ARN="${{ secrets.LAMBDA_EXECUTION_ROLE_ARN }}"
-          BUCKET="k3-lambda-artifacts"
-          ZIP_KEY="function.zip"
           REGION="ap-south-1"
 
           if ! aws lambda get-function --function-name "$FUNCTION_NAME" > /dev/null 2>&1; then
@@ -97,7 +116,7 @@ jobs:
               --runtime python3.11 \
               --role "$ROLE_ARN" \
               --handler app.lambda_handler \
-              --code S3Bucket=$BUCKET,S3Key=$ZIP_KEY \
+              --code S3Bucket=k3-lambda-artifacts,S3Key=function.zip \
               --timeout 30 \
               --memory-size 256 \
               --layers arn:aws:lambda:$REGION:${{ secrets.AWS_ACCOUNT_ID }}:layer:flask-layer-k3:$LAYER_VERSION \
@@ -106,6 +125,7 @@ jobs:
             echo "✅ Function exists. Skipping creation."
           fi
 
+      # ---------- Update Lambda Function ----------
       - name: Update Lambda Function Code and Layer
         run: |
           aws lambda update-function-code \
@@ -117,7 +137,8 @@ jobs:
             --function-name flask-backend-lambda \
             --layers arn:aws:lambda:ap-south-1:${{ secrets.AWS_ACCOUNT_ID }}:layer:flask-layer-k3:$LAYER_VERSION
 
-      - name: Optional Cleanup - Remove ZIP from S3
+      - name: Optional Cleanup - Remove ZIPs from S3
         if: success()
         run: |
-          aws s3 rm s3://k3-lambda-artifacts/function.zip
+          aws s3 rm s3://k3-lambda-artifacts/function.zip || true
+          aws s3 rm s3://k3-lambda-artifacts/layers/flask-layer-k3.zip || true
