@@ -4,7 +4,7 @@ on:
   workflow_dispatch: # allows manual trigger
   # push:
   #   branches:
-  #     - main # triggers workflow automatically on push to main
+  #     - main
 
 jobs:
   deploy:
@@ -42,9 +42,9 @@ jobs:
       - name: Echo ZIP File Size and Validate Limit
         run: |
           ZIP_SIZE_MB=$(du -m backend/function.zip | cut -f1)
-          echo "ZIP file size is ${ZIP_SIZE_MB} MB"
+          echo "📦 ZIP file size is ${ZIP_SIZE_MB} MB"
           if [ "$ZIP_SIZE_MB" -gt 5120 ]; then
-            echo "❌ ZIP file size exceeds 5GB limit. Aborting deployment."
+            echo "❌ ZIP file size exceeds 5GB AWS Lambda limit. Aborting."
             exit 1
           fi
 
@@ -59,6 +59,30 @@ jobs:
         run: |
           aws s3 cp backend/function.zip s3://k3-lambda-artifacts/function.zip
 
+      - name: Create Lambda Function if Not Exists
+        run: |
+          set -e
+          FUNCTION_NAME="flask-backend-lambda"
+          ROLE_ARN="${{ secrets.LAMBDA_EXECUTION_ROLE_ARN }}"
+          BUCKET="k3-lambda-artifacts"
+          ZIP_KEY="function.zip"
+          REGION="ap-south-1"
+
+          if ! aws lambda get-function --function-name "$FUNCTION_NAME" > /dev/null 2>&1; then
+            echo "🔧 Function not found. Creating it..."
+            aws lambda create-function \
+              --function-name "$FUNCTION_NAME" \
+              --runtime python3.11 \
+              --role "$ROLE_ARN" \
+              --handler app.lambda_handler \
+              --code S3Bucket=$BUCKET,S3Key=$ZIP_KEY \
+              --timeout 30 \
+              --memory-size 256 \
+              --region $REGION
+          else
+            echo "✅ Function exists. Skipping creation."
+          fi
+
       - name: Deploy to Lambda from S3
         run: |
           aws lambda update-function-code \
@@ -67,5 +91,6 @@ jobs:
             --s3-key function.zip
 
       - name: Optional Cleanup - Remove ZIP from S3
+        if: success()
         run: |
           aws s3 rm s3://k3-lambda-artifacts/function.zip
