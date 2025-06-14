@@ -26,7 +26,7 @@ jobs:
       - name: Zip Lambda Function Code (App only, no deps)
         run: |
           cd backend
-          zip -r function.zip app.py .env
+          zip -r function.zip . -x "*.pyc" -x "__pycache__/*" -x "tests/*"
 
       - name: Echo ZIP File Size and Validate Limit
         run: |
