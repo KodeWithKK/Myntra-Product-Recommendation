@@ -137,6 +137,9 @@ jobs:
             --s3-bucket k3-lambda-artifacts \
             --s3-key function.zip
 
+          echo "⏳ Waiting for function code update to complete..."
+          aws lambda wait function-updated --function-name flask-backend-lambda
+
           aws lambda update-function-configuration \
             --function-name flask-backend-lambda \
             --layers arn:aws:lambda:ap-south-1:${{ secrets.AWS_ACCOUNT_ID }}:layer:flask-layer-k3:$LAYER_VERSION
