@@ -131,10 +131,12 @@ jobs:
 
       - name: Wait for Lambda Function to be Fully Ready
         run: |
+          set -e
           FUNCTION_NAME="flask-backend-lambda"
+          MAX_RETRIES=30
           echo "⏳ Waiting for Lambda to be ready for update..."
 
-          for i in {1..30}; do
+          for ((i=1; i<=MAX_RETRIES; i++)); do
             CONFIG=$(aws lambda get-function-configuration --function-name "$FUNCTION_NAME")
             STATE=$(echo "$CONFIG" | jq -r '.State')
             UPDATE_STATUS=$(echo "$CONFIG" | jq -r '.LastUpdateStatus')
@@ -143,7 +145,7 @@ jobs:
 
             if [[ "$STATE" == "Active" && "$UPDATE_STATUS" == "Successful" ]]; then
               echo "✅ Lambda is ready."
-              break
+              exit 0
             fi
 
             if [[ "$UPDATE_STATUS" == "Failed" ]]; then
@@ -153,6 +155,9 @@ jobs:
 
             sleep 10
           done
+
+          echo "❌ Lambda did not become ready after $MAX_RETRIES attempts."
+          exit 1
 
       - name: Update Lambda Function Code and Layer
         run: |
