@@ -126,38 +126,9 @@ jobs:
             echo "✅ Function exists. Skipping creation."
           fi
 
-      - name: Install jq (for JSON parsing)
-        run: sudo apt-get install -y jq
-
       - name: Wait for Lambda Function to be Fully Ready
         run: |
-          set -e
-          FUNCTION_NAME="flask-backend-lambda"
-          MAX_RETRIES=30
-          echo "⏳ Waiting for Lambda to be ready for update..."
-
-          for ((i=1; i<=MAX_RETRIES; i++)); do
-            CONFIG=$(aws lambda get-function-configuration --function-name "$FUNCTION_NAME")
-            STATE=$(echo "$CONFIG" | jq -r '.State')
-            UPDATE_STATUS=$(echo "$CONFIG" | jq -r '.LastUpdateStatus')
-
-            echo "[$i] State: $STATE | LastUpdateStatus: $UPDATE_STATUS"
-
-            if [[ "$STATE" == "Active" && "$UPDATE_STATUS" == "Successful" ]]; then
-              echo "✅ Lambda is ready."
-              exit 0
-            fi
-
-            if [[ "$UPDATE_STATUS" == "Failed" ]]; then
-              echo "❌ Lambda creation/update failed."
-              exit 1
-            fi
-
-            sleep 10
-          done
-
-          echo "❌ Lambda did not become ready after $MAX_RETRIES attempts."
-          exit 1
+          aws lambda wait function-updated --function-name flask-backend-lambda
 
       - name: Update Lambda Function Code and Layer
         run: |
