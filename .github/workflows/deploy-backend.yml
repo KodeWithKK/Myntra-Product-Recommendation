@@ -129,23 +129,29 @@ jobs:
           fi
 
       # ---------- Wait for Lambda Function to become Active ----------
-      - name: Wait for Lambda Function to become Active
+      - name: Wait for Lambda Function to be Fully Ready
         run: |
           FUNCTION_NAME="flask-backend-lambda"
-          echo "⏳ Waiting for Lambda function to become Active..."
+          echo "⏳ Waiting for Lambda function to be fully ready (Active + LastUpdateStatus=Successful)..."
+
           for i in {1..30}; do
-            STATUS=$(aws lambda get-function-configuration \
+            STATE=$(aws lambda get-function-configuration \
               --function-name "$FUNCTION_NAME" \
               --query 'State' --output text)
 
-            echo "Current status: $STATUS"
-            if [ "$STATUS" = "Active" ]; then
-              echo "✅ Lambda function is active."
+            UPDATE_STATUS=$(aws lambda get-function-configuration \
+              --function-name "$FUNCTION_NAME" \
+              --query 'LastUpdateStatus' --output text)
+
+            echo "Current state: $STATE, update status: $UPDATE_STATUS"
+
+            if [ "$STATE" = "Active" ] && [ "$UPDATE_STATUS" = "Successful" ]; then
+              echo "✅ Lambda is fully ready."
               break
             fi
 
-            if [ "$STATUS" = "Failed" ]; then
-              echo "❌ Lambda function creation failed."
+            if [ "$UPDATE_STATUS" = "Failed" ]; then
+              echo "❌ Lambda update failed."
               exit 1
             fi
 
