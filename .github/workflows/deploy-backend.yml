@@ -1,10 +1,7 @@
 name: Deploy Flask to AWS Lambda with uv
 
 on:
-  workflow_dispatch: # allows manual trigger
-  # push:
-  #   branches:
-  #     - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -56,14 +53,28 @@ jobs:
           aws-region: ap-south-1
 
       # ---------- Lambda Layer Creation from S3 ----------
-      - name: Build and Upload Lambda Layer ZIP to S3
+      - name: Build, Clean and Upload Lambda Layer ZIP to S3
         run: |
           mkdir -p lambda_layer/python
           uv pip compile backend/pyproject.toml --output-file requirements.txt
           uv pip install -r requirements.txt --target lambda_layer/python
 
+          echo "🧹 Cleaning unnecessary files from layer..."
+          find lambda_layer -type d -name "__pycache__" -exec rm -rf {} +
+          find lambda_layer -type d -name "*.dist-info" -exec rm -rf {} +
+          find lambda_layer -type f -name "*.pyc" -delete
+          find lambda_layer -type d -name "tests*" -exec rm -rf {} +
+
+          echo "📏 Checking uncompressed layer size..."
+          UNZIPPED_SIZE=$(du -sb lambda_layer | cut -f1)
+          echo "Uncompressed size: $((UNZIPPED_SIZE / 1024 / 1024)) MB"
+          if [ "$UNZIPPED_SIZE" -gt 262144000 ]; then
+            echo "❌ Layer uncompressed size exceeds 250MB AWS limit. Aborting."
+            exit 1
+          fi
+
           cd lambda_layer
-          zip -r ../layer.zip .
+          zip -r9 ../layer.zip .
           cd ..
 
           aws s3 cp layer.zip s3://k3-lambda-artifacts/layers/flask-layer-k3.zip
