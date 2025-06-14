@@ -144,6 +144,33 @@ jobs:
             --function-name flask-backend-lambda \
             --layers arn:aws:lambda:ap-south-1:${{ secrets.AWS_ACCOUNT_ID }}:layer:flask-layer-k3:$LAYER_VERSION
 
+      - name: Create Lambda Function URL if Not Exists
+        run: |
+          set -e
+          FUNCTION_NAME="flask-backend-lambda"
+          REGION="ap-south-1"
+
+          echo "🔍 Checking if Function URL exists..."
+          EXISTING_URL=$(aws lambda get-function-url-config --function-name "$FUNCTION_NAME" 2>/dev/null || true)
+
+          if [ -z "$EXISTING_URL" ]; then
+            echo "🌐 Creating Function URL..."
+            URL_RESPONSE=$(aws lambda create-function-url-config \
+              --function-name "$FUNCTION_NAME" \
+              --auth-type NONE)
+            FUNCTION_URL=$(echo "$URL_RESPONSE" | jq -r '.FunctionUrl')
+            echo "✅ Created Function URL: $FUNCTION_URL"
+          else
+            FUNCTION_URL=$(echo "$EXISTING_URL" | jq -r '.FunctionUrl')
+            echo "✅ Function URL already exists: $FUNCTION_URL"
+          fi
+
+          echo "FUNCTION_URL=$FUNCTION_URL" >> $GITHUB_ENV
+
+      - name: Print Lambda Function URL
+        run: |
+          echo "🚀 Your Lambda Function URL is: $FUNCTION_URL"
+
       - name: Optional Cleanup - Remove ZIPs from S3
         if: success()
         run: |
