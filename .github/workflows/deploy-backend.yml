@@ -44,7 +44,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
-      # ---------- Lambda Layer Creation from S3 ----------
+      # ---------- Lambda Layer Creation ----------
       - name: Build, Clean and Upload Lambda Layer ZIP to S3
         run: |
           mkdir -p lambda_layer/python
@@ -99,12 +99,10 @@ jobs:
 
           echo "LAYER_VERSION=$LAYER_VERSION" >> $GITHUB_ENV
 
-      # ---------- Upload Lambda Function ZIP ----------
       - name: Upload Lambda Function ZIP to S3
         run: |
           aws s3 cp backend/function.zip s3://k3-lambda-artifacts/function.zip
 
-      # ---------- Create Lambda Function If Not Exists ----------
       - name: Create Lambda Function if Not Exists
         run: |
           set -e
@@ -128,11 +126,10 @@ jobs:
             echo "✅ Function exists. Skipping creation."
           fi
 
-      # ---------- Wait for Lambda Function to become Active ----------
       - name: Wait for Lambda Function to be Fully Ready
         run: |
           FUNCTION_NAME="flask-backend-lambda"
-          echo "⏳ Waiting for Lambda function to be fully ready (Active + LastUpdateStatus=Successful)..."
+          echo "⏳ Waiting for Lambda to be Active + UpdateStatus=Successful..."
 
           for i in {1..30}; do
             STATE=$(aws lambda get-function-configuration \
@@ -143,10 +140,10 @@ jobs:
               --function-name "$FUNCTION_NAME" \
               --query 'LastUpdateStatus' --output text)
 
-            echo "Current state: $STATE, update status: $UPDATE_STATUS"
+            echo "State: $STATE | LastUpdateStatus: $UPDATE_STATUS"
 
             if [ "$STATE" = "Active" ] && [ "$UPDATE_STATUS" = "Successful" ]; then
-              echo "✅ Lambda is fully ready."
+              echo "✅ Lambda is ready for update."
               break
             fi
 
@@ -158,7 +155,6 @@ jobs:
             sleep 10
           done
 
-      # ---------- Update Lambda Function ----------
       - name: Update Lambda Function Code and Layer
         run: |
           aws lambda update-function-code \
