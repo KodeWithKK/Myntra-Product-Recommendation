@@ -19,22 +19,14 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Install App Dependencies (Only App Code)
-        run: |
-          cd backend
-          mkdir -p package
-          uv pip install -r pyproject.toml --target package
-
       - name: Create .env file from Secret
         run: |
           echo "${{ secrets.BACKEND_ENV_FILE }}" > backend/.env
 
-      - name: Zip Lambda Function Code (excluding heavy deps)
+      - name: Zip Lambda Function Code (App only, no deps)
         run: |
-          cd backend/package
-          zip -r ../function.zip .
-          cd ..
-          zip -g function.zip app.py .env
+          cd backend
+          zip -r function.zip app.py .env
 
       - name: Echo ZIP File Size and Validate Limit
         run: |
