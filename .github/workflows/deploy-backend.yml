@@ -126,29 +126,28 @@ jobs:
             echo "✅ Function exists. Skipping creation."
           fi
 
+      - name: Install jq (for JSON parsing)
+        run: sudo apt-get install -y jq
+
       - name: Wait for Lambda Function to be Fully Ready
         run: |
           FUNCTION_NAME="flask-backend-lambda"
-          echo "⏳ Waiting for Lambda to be Active + UpdateStatus=Successful..."
+          echo "⏳ Waiting for Lambda to be ready for update..."
 
           for i in {1..30}; do
-            STATE=$(aws lambda get-function-configuration \
-              --function-name "$FUNCTION_NAME" \
-              --query 'State' --output text)
+            CONFIG=$(aws lambda get-function-configuration --function-name "$FUNCTION_NAME")
+            STATE=$(echo "$CONFIG" | jq -r '.State')
+            UPDATE_STATUS=$(echo "$CONFIG" | jq -r '.LastUpdateStatus')
 
-            UPDATE_STATUS=$(aws lambda get-function-configuration \
-              --function-name "$FUNCTION_NAME" \
-              --query 'LastUpdateStatus' --output text)
+            echo "[$i] State: $STATE | LastUpdateStatus: $UPDATE_STATUS"
 
-            echo "State: $STATE | LastUpdateStatus: $UPDATE_STATUS"
-
-            if [ "$STATE" = "Active" ] && [ "$UPDATE_STATUS" = "Successful" ]; then
-              echo "✅ Lambda is ready for update."
+            if [[ "$STATE" == "Active" && "$UPDATE_STATUS" == "Successful" ]]; then
+              echo "✅ Lambda is ready."
               break
             fi
 
-            if [ "$UPDATE_STATUS" = "Failed" ]; then
-              echo "❌ Lambda update failed."
+            if [[ "$UPDATE_STATUS" == "Failed" ]]; then
+              echo "❌ Lambda creation/update failed."
               exit 1
             fi
 
