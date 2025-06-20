@@ -1,0 +1,11 @@
+services:
+  myntra-prs-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    container_name: myntra-prs-backend
+    ports:
+      - "5000:5000"
+    restart: unless-stopped

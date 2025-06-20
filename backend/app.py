@@ -1,8 +1,8 @@
+import logging
 import os
 
 from database.db import init_app
 from dotenv import load_dotenv
-import logging
 from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # Entry point for local development
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=False)
 
 # Entry point for AWS Lambda
 lambda_handler = Mangum(app)
