@@ -1,7 +1,6 @@
 FROM ghcr.io/astral-sh/uv:latest AS uv
 FROM public.ecr.aws/lambda/python:3.11 AS builder
 
-# Set uv environment variables for optimized installation
 ENV UV_COMPILE_BYTECODE=1 \
   UV_NO_INSTALLER_METADATA=1 \
   UV_LINK_MODE=copy
@@ -14,16 +13,17 @@ COPY requirements.txt .
 COPY precompute_cosine.py .
 COPY data/ ./data/
 
-# Install dependencies using uv and cache
+# Install dependencies to the Lambda target directory
 RUN --mount=type=cache,target=/root/.cache/uv \
   uv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
-# Run the script to generate the compressed .npz file during build
-RUN python3 precompute_cosine.py
+# Run script using installed packages from Lambda's runtime path
+RUN PYTHONPATH="${LAMBDA_TASK_ROOT}" python3 precompute_cosine.py
 
 FROM public.ecr.aws/lambda/python:3.11
 
 COPY --from=builder "${LAMBDA_TASK_ROOT}" "${LAMBDA_TASK_ROOT}"
+COPY --from=builder /app/data /var/task/data
 COPY . "${LAMBDA_TASK_ROOT}"
 
 CMD ["main.handler"]
