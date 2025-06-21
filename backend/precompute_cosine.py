@@ -8,7 +8,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 # Paths
 DATASET_PATH = "./data/cleaned_myntra_dataset_backend.csv"
 OUTPUT_DIR = "./data/precomputed"
-OUTPUT_FILE = os.path.join(OUTPUT_DIR, "cosine_sim_32_compressed.npz")
+OUTPUT_FILE = os.path.join(OUTPUT_DIR, "cosine_sim.npz")
 
 # Ensure output directory exists
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -24,7 +24,7 @@ tfidf_matrix = tfidf_vectorizer.fit_transform(products_df["tags"])
 
 # Compute cosine similarity (convert to float32 to reduce size)
 print("🔗 Computing cosine similarity...")
-cosine_sim_matrix = cosine_similarity(tfidf_matrix).astype(np.float32)
+cosine_sim_matrix = cosine_similarity(tfidf_matrix).astype(np.float16)
 
 # Save compressed .npz file
 print(f"💾 Saving similarity matrix to {OUTPUT_FILE} ...")
