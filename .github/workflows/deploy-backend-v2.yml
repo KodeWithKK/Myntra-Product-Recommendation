@@ -30,11 +30,15 @@ jobs:
         with:
           terraform_version: 1.10.0
 
-      - name: Terraform Apply
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform
+
+      - name: Terraform Plan & Apply
         run: |
-          cd terraform
-          terraform init
-          terraform apply -auto-approve
+          terraform plan -out=tfplan
+          terraform apply -auto-approve tfplan
+        working-directory: terraform
 
       - name: Login to ECR
         id: login
