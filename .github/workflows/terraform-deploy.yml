@@ -101,11 +101,8 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Write env.tfvars
-        run: printf "%s\n" "${{ secrets.BACKEND_ENV_TFVARS_FILE }}" > env.tfvars
-
       - name: Terraform Apply - Lambda Deployment
-        run: terraform apply -var-file="env.tfvars" -auto-approve
+        run: terraform apply -auto-approve
 
       - name: Get Lambda URL from Terraform Output
         id: tf_output
