@@ -20,14 +20,14 @@ provider "aws" {
 }
 
 # --- ECR Repository ---
-resource "aws_ecr_repository" "myntra_prs_backend_repo" {
+resource "aws_ecr_repository" "lambda_ecr_repo" {
   name                 = "myntra-prs-backend"
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 }
 
 resource "aws_ecr_lifecycle_policy" "ecr_lifecycle" {
-  repository = aws_ecr_repository.myntra_prs_backend_repo.name
+  repository = aws_ecr_repository.lambda_ecr_repo.name
 
   policy = jsonencode({
     rules = [
@@ -74,19 +74,28 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 
 
 # --- Lambda Function ---
-resource "aws_lambda_function" "myntra_prs_backend_lambda" {
+resource "aws_lambda_function" "lambda_ecr_function" {
   function_name = "myntra-prs-backend"
   role          = aws_iam_role.lambda_exec_role.arn
   package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.myntra_prs_backend_repo.repository_url}:latest"
+  image_uri     = "${aws_ecr_repository.lambda_ecr_repo.repository_url}:latest"
   timeout       = 10
   memory_size   = 2048
+
+  environment {
+    variables = {
+      MONGODB_URI    = var.mongodb_uri
+      SECRET_KEY     = var.secret_key
+      JWT_SECRET_KEY = var.jwt_secret_key
+      FRONTEND_URL   = var.frontend_url
+    }
+  }
 
   tags = {
     Project = "Myntra-prs-backend"
   }
 
-  depends_on = [aws_ecr_repository.myntra_prs_backend_repo]
+  depends_on = [aws_ecr_repository.lambda_ecr_repo]
 
   lifecycle {
     ignore_changes = [image_uri]
@@ -94,7 +103,7 @@ resource "aws_lambda_function" "myntra_prs_backend_lambda" {
 }
 
 # --- Lambda Function URL ---
-resource "aws_lambda_function_url" "myntra_prs_backend_url" {
-  function_name      = aws_lambda_function.myntra_prs_backend_lambda.function_name
+resource "aws_lambda_function_url" "lambda_ecr_function_url" {
+  function_name      = aws_lambda_function.lambda_ecr_function.function_name
   authorization_type = "NONE"
 }

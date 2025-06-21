@@ -2,6 +2,10 @@ name: Terraform Destroy
 
 on:
   workflow_dispatch:
+  # Uncomment below to auto-deploy on push to master
+  # push:
+  #   branches:
+  #     - master
 
 env:
   AWS_REGION: ap-south-1
