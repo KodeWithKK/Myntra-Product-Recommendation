@@ -16,6 +16,9 @@ COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/uv \
   uv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
+# Run the script to generate the compressed .npz file during build
+RUN python3 precompute_cosine.py
+
 FROM public.ecr.aws/lambda/python:3.11
 
 COPY --from=builder "${LAMBDA_TASK_ROOT}" "${LAMBDA_TASK_ROOT}"
