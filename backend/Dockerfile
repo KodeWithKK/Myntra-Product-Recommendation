@@ -11,6 +11,8 @@ COPY --from=uv /uv /bin/
 WORKDIR /app
 
 COPY requirements.txt .
+COPY precompute_cosine.py .
+COPY data/ ./data/
 
 # Install dependencies using uv and cache
 RUN --mount=type=cache,target=/root/.cache/uv \
