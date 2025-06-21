@@ -25,6 +25,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Terraform Apply
+        run: |
+          cd terraform
+          terraform init
+          terraform apply -auto-approve
+
       - name: Login to ECR
         id: login
         uses: aws-actions/amazon-ecr-login@v2
@@ -34,9 +40,3 @@ jobs:
           docker build -t ${{ env.ECR_REPO }} backend/
           docker tag ${{ env.ECR_REPO }}:latest ${{ steps.login.outputs.registry }}/${{ env.ECR_REPO }}:latest
           docker push ${{ steps.login.outputs.registry }}/${{ env.ECR_REPO }}:latest
-
-      - name: Terraform Apply
-        run: |
-          cd terraform
-          terraform init
-          terraform apply -auto-approve
