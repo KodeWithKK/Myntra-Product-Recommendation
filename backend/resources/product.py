@@ -3,7 +3,6 @@ import json
 from database.db import dbi
 from flask import jsonify, request
 from flask_restful import Resource
-from ml_model import give_recommendation
 
 
 # Total Products: 14268
@@ -59,6 +58,8 @@ class GetProducts(Resource):
 class GetProduct(Resource):
     def get(self, id):
         try:
+            from ml_model import give_recommendation
+
             product = dbi.db.products.find_one({"p_id": int(id)})
 
             if product:

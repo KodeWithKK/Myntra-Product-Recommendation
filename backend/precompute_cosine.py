@@ -31,4 +31,3 @@ print(f"💾 Saving similarity matrix to {OUTPUT_FILE} ...")
 np.savez_compressed(OUTPUT_FILE, cosine_sim=cosine_sim_matrix)
 
 print("✅ Precomputation complete!")
-print("✅ Precomputation complete!")
