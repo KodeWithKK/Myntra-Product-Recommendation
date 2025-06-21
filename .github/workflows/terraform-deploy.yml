@@ -10,6 +10,10 @@ on:
 env:
   AWS_REGION: ap-south-1
   ECR_REPO: myntra-prs-backend
+  TF_VAR_mongodb_uri: ${{ secrets.MONGODB_URI }}
+  TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
+  TF_VAR_jwt_secret_key: ${{ secrets.JWT_SECRET_KEY }}
+  TF_VAR_frontend_url: ${{ secrets.FRONTEND_URL }}
 
 jobs:
   terraform_setup:
