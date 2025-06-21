@@ -1,20 +1,24 @@
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+FROM ghcr.io/astral-sh/uv:latest AS uv
+FROM public.ecr.aws/lambda/python:3.11 AS builder
+
+# Set uv environment variables for optimized installation
+ENV UV_COMPILE_BYTECODE=1 \
+  UV_NO_INSTALLER_METADATA=1 \
+  UV_LINK_MODE=copy
+
+COPY --from=uv /uv /bin/
 
 WORKDIR /app
 
-ENV UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy \
-    PYTHONUNBUFFERED=1 \
-    PATH="/app/.venv/bin:$PATH"
+COPY requirements.txt .
 
-COPY pyproject.toml uv.lock ./
-
+# Install dependencies using uv and cache
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+  uv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
-COPY . .
+FROM public.ecr.aws/lambda/python:3.11
 
-EXPOSE 5000
-ENTRYPOINT []
+COPY --from=builder "${LAMBDA_TASK_ROOT}" "${LAMBDA_TASK_ROOT}"
+COPY . "${LAMBDA_TASK_ROOT}"
 
-CMD ["python", "main.py"]
+CMD ["main.handler"]

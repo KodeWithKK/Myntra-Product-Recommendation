@@ -1,9 +1,8 @@
-import logging
 import os
 
 from database.db import init_app
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_restful import Api
 from mangum import Mangum
@@ -12,21 +11,23 @@ from resources.routes import initialize_routes
 # Load environment variables
 load_dotenv()
 
-# Create Flask app
 app = Flask(__name__)
 CORS(app, origins=[os.getenv("FRONTEND_URL")])
 api = Api(app)
 
-# Configure DB and routes
 app.config["MONGO_URI"] = os.getenv("MONGODB_URI")
 init_app(app)
 initialize_routes(api)
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
-# Entry point for local development
+
+@app.route("/")
+def hello():
+    return jsonify({"message": "Hello from Myntra"})
+
+
+# ✅ Lambda-compatible handler (used by SAM or real Lambda)
+handler = Mangum(app)
+
+# ✅ Only run server if run locally (not when SAM invokes it)
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
-
-# Entry point for AWS Lambda
-lambda_handler = Mangum(app)
+    app.run(host="0.0.0.0", port=5000, debug=True)

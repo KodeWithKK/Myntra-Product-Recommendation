@@ -3,9 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - "9000:8080"
     env_file:
       - .env
     container_name: myntra-prs-backend
-    ports:
-      - "5000:5000"
     restart: unless-stopped
