@@ -4,7 +4,7 @@ flask-cors
 flask-jwt-extended
 flask-pymongo
 flask-restful
-mangum
+aws_lambda_wsgi
 numpy<2.0.0
 pandas<2.5.0
 python-dotenv

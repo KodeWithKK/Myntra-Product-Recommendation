@@ -28,6 +28,10 @@ cosine_sim_matrix = cosine_similarity(tfidf_matrix).astype(np.float16)
 
 # Save compressed .npz file
 print(f"💾 Saving similarity matrix to {OUTPUT_FILE} ...")
-np.savez_compressed(OUTPUT_FILE, cosine_sim=cosine_sim_matrix)
+np.savez_compressed(
+    OUTPUT_FILE,
+    cosine_sim=cosine_sim_matrix,
+    product_ids=products_df["p_id"].values,
+)
 
 print("✅ Precomputation complete!")

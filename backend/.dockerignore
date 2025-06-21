@@ -39,3 +39,6 @@ docker-compose.yml
 
 # uv cache
 .uv/
+
+# custom folders
+data/precomputed

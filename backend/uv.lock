@@ -16,17 +16,26 @@ wheels = [
 ]
 
 [[package]]
+name = "aws-lambda-wsgi"
+version = "0.0.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fb/c7/c2b1ebe38b48adb0c156b2e335efa6405b33cee3aa65e918f0d6008aeb77/aws_lambda_wsgi-0.0.6.tar.gz", hash = "sha256:54ac15c5586f72b1429253bdcb487b7214a348713fd0034de7d45e849224e893", size = 2938 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/84/64/6beb002f48f3215dcd8e521b0afe13531e8cfb0e55d4d4ffbf992c232df6/aws_lambda_wsgi-0.0.6-py3-none-any.whl", hash = "sha256:28669d8168a46b49a77ba127711f4db05ccd35379bbcbcc28ef515b9c8ce0c67", size = 3832 },
+]
+
+[[package]]
 name = "backend"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "aws-lambda-wsgi" },
     { name = "flask" },
     { name = "flask-bcrypt" },
     { name = "flask-cors" },
     { name = "flask-jwt-extended" },
     { name = "flask-pymongo" },
     { name = "flask-restful" },
-    { name = "mangum" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "python-dotenv" },
@@ -35,13 +44,13 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aws-lambda-wsgi", specifier = ">=0.0.6" },
     { name = "flask", specifier = ">=3.1.1" },
     { name = "flask-bcrypt", specifier = ">=1.0.1" },
     { name = "flask-cors", specifier = ">=6.0.1" },
     { name = "flask-jwt-extended", specifier = ">=4.7.1" },
     { name = "flask-pymongo", specifier = ">=3.0.1" },
     { name = "flask-restful", specifier = ">=0.3.10" },
-    { name = "mangum", specifier = ">=0.19.0" },
     { name = "numpy", specifier = ">=2.3.0" },
     { name = "pandas", specifier = ">=2.3.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
@@ -254,18 +263,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/dc/fe/0f5a938c54105553436dbff7a61dc4fed4b1b2c98852f8833beaf4d5968f/joblib-1.5.1.tar.gz", hash = "sha256:f4f86e351f39fe3d0d32a9f2c3d8af1ee4cec285aafcb27003dda5205576b444", size = 330475 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7d/4f/1195bbac8e0c2acc5f740661631d8d750dc38d4a32b23ee5df3cde6f4e0d/joblib-1.5.1-py3-none-any.whl", hash = "sha256:4719a31f054c7d766948dcd83e9613686b27114f190f717cec7eaa2084f8a74a", size = 307746 },
-]
-
-[[package]]
-name = "mangum"
-version = "0.19.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/97/e0/6ee9bfa27226252a449cba12fc57d3f1c3ce661813377ab33e29245389a4/mangum-0.19.0.tar.gz", hash = "sha256:e388e7c491b7b67970f8234e46fd4a7b21ff87785848f418de08148f71cf0bd6", size = 85792 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/77/ec/dd1cae5f6b1b4a08c01de587b45e889036b2f8c06408621e0cb273909965/mangum-0.19.0-py3-none-any.whl", hash = "sha256:e500b35f495d5e68ac98bc97334896d6101523f2ee2c57ba6a61893b65266e59", size = 17083 },
 ]
 
 [[package]]
@@ -597,15 +594,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b7/4d/08c89e34946fce2aec4fbb45c9016efd5f4d7f24af8e5d93296e935631d8/threadpoolctl-3.6.0.tar.gz", hash = "sha256:8ab8b4aa3491d812b623328249fab5302a68d2d71745c8a4c719a2fcaba9f44e", size = 21274 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/32/d5/f9a850d79b0851d1d4ef6456097579a9005b31fea68726a4ae5f2d82ddd9/threadpoolctl-3.6.0-py3-none-any.whl", hash = "sha256:43a0b8fd5a2928500110039e43a5eed8480b918967083ea48dc3ab9f13c4a7fb", size = 18638 },
-]
-
-[[package]]
-name = "typing-extensions"
-version = "4.14.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d1/bc/51647cd02527e87d05cb083ccc402f93e441606ff1f01739a62c8ad09ba5/typing_extensions-4.14.0.tar.gz", hash = "sha256:8676b788e32f02ab42d9e7c61324048ae4c6d844a399eebace3d4979d75ceef4", size = 107423 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/69/e0/552843e0d356fbb5256d21449fa957fa4eff3bbc135a74a691ee70c7c5da/typing_extensions-4.14.0-py3-none-any.whl", hash = "sha256:a1514509136dd0b477638fc68d6a91497af5076466ad0fa6c338e44e359944af", size = 43839 },
 ]
 
 [[package]]

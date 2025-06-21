@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Flask Lambda with Docker
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 2048
+Resources:
+  FlaskFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Environment:
+        Variables:
+          MONGODB_URI: mongodb+srv://kodewithkk:KKpass454@cluster0.ypdduyg.mongodb.net/MyntraProductRecommendation
+          SECRET_KEY: krishnakant454
+          JWT_SECRET_KEY: krishnakant123
+          FRONTEND_URL: http://localhost:5173
+      Events:
+        ApiProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+        ApiRoot:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+      ImageUri: flaskfunction:flask-dev
+    Metadata:
+      DockerContext: D:\K3Workspace\BuildingProjects\Myntra Product Recommendation\backend
+      DockerTag: flask-dev
+      Dockerfile: Dockerfile
+      SamResourceId: FlaskFunction
