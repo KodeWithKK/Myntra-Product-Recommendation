@@ -1,4 +1,4 @@
-name: Deploy Backend to AWS Lambda via ECR
+name: Backend Deployment
 
 on:
   workflow_dispatch:
@@ -98,7 +98,7 @@ jobs:
         run: terraform init
 
       - name: Write env.tfvars
-        run: echo "${{ secrets.BACKEND_ENV_TFVARS_FILE }}" > env.tfvars
+        run: printf "%s\n" "${{ secrets.BACKEND_ENV_TFVARS_FILE }}" > env.tfvars
 
       - name: Terraform Apply - Lambda Deployment
         run: terraform apply -var-file="env.tfvars" -auto-approve
