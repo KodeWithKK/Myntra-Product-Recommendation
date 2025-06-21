@@ -24,3 +24,13 @@ resource "aws_lambda_function" "backend_fn" {
   timeout       = 30
   memory_size   = 1024 # RAM size in MB
 }
+
+resource "aws_lambda_function_url" "backend_url" {
+  function_name      = aws_lambda_function.backend_fn.function_name
+  authorization_type = "NONE" # use "AWS_IAM" if you want it private
+  depends_on         = [aws_lambda_function.backend_fn]
+}
+
+output "lambda_function_url" {
+  value = aws_lambda_function_url.backend_url.function_url
+}
