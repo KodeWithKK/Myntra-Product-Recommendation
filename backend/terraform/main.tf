@@ -7,11 +7,10 @@ terraform {
   }
 
   backend "s3" {
-    bucket       = "k3-tfstates"
-    key          = "myntra-prs-backend/terraform.tfstate"
-    region       = "ap-south-1"
-    encrypt      = true
-    use_lockfile = true
+    bucket  = "k3-tfstates"
+    key     = "myntra-prs-backend/terraform.tfstate"
+    region  = "ap-south-1"
+    encrypt = true
   }
 }
 
@@ -24,28 +23,6 @@ resource "aws_ecr_repository" "lambda_ecr_repo" {
   name                 = "myntra-prs-backend"
   image_tag_mutability = "MUTABLE"
   force_delete         = true
-}
-
-resource "aws_ecr_lifecycle_policy" "ecr_lifecycle" {
-  repository = aws_ecr_repository.lambda_ecr_repo.name
-
-  policy = jsonencode({
-    rules = [
-      {
-        rulePriority = 1
-        description  = "Keep only latest image"
-        selection = {
-          tagStatus     = "tagged"
-          tagPrefixList = ["latest"]
-          countType     = "imageCountMoreThan"
-          countNumber   = 1
-        }
-        action = {
-          type = "expire"
-        }
-      }
-    ]
-  })
 }
 
 # --- IAM Role for Lambda ---
@@ -61,10 +38,6 @@ resource "aws_iam_role" "lambda_exec_role" {
       }
     }]
   })
-
-  lifecycle {
-    ignore_changes = [name]
-  }
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
@@ -97,19 +70,16 @@ resource "aws_lambda_function" "lambda_ecr_function" {
   depends_on = [aws_ecr_repository.lambda_ecr_repo]
 
   lifecycle {
-    ignore_changes = [image_uri]
+    ignore_changes = [image_uri] # We deploy manually/push via GitHub Actions
   }
 }
 
-# === HTTP API Gateway Setup ===
-
-# 1. Create HTTP API
+# --- API Gateway HTTP API ---
 resource "aws_apigatewayv2_api" "http_api" {
-  name          = "myntra-prs-backend-api"
+  name          = "myntra-prs-http-api"
   protocol_type = "HTTP"
 }
 
-# 2. Lambda Integration
 resource "aws_apigatewayv2_integration" "lambda_integration" {
   api_id                 = aws_apigatewayv2_api.http_api.id
   integration_type       = "AWS_PROXY"
@@ -118,22 +88,26 @@ resource "aws_apigatewayv2_integration" "lambda_integration" {
   payload_format_version = "2.0"
 }
 
-# 3. Route (ANY /{proxy+})
-resource "aws_apigatewayv2_route" "default_route" {
+resource "aws_apigatewayv2_route" "proxy_route" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "ANY /{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
 
-# 4. Deploy Stage
+resource "aws_apigatewayv2_route" "root_route" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "ANY /"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+}
+
 resource "aws_apigatewayv2_stage" "default_stage" {
   api_id      = aws_apigatewayv2_api.http_api.id
   name        = "$default"
   auto_deploy = true
 }
 
-# 5. Lambda Permission for API Gateway
-resource "aws_lambda_permission" "allow_apigw_invoke" {
+# --- Permission for API Gateway to Invoke Lambda ---
+resource "aws_lambda_permission" "apigw_permission" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_ecr_function.function_name
