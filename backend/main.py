@@ -1,11 +1,11 @@
 import os
 
-from aws_lambda_wsgi import response
 from database.db import init_app
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_restful import Api
+from mangum import Mangum
 from resources.routes import initialize_routes
 
 # Load environment variables
@@ -26,10 +26,8 @@ def hello():
     return jsonify({"message": "Hello from Myntra"})
 
 
-# Lambda-compatible handler
-def handler(event, context):
-    return response(app, event, context)
-
+# Create a Mangum handler for AWS Lambda compatibility
+handler = Mangum(app)
 
 # Only run server if run locally
 # if __name__ == "__main__":
