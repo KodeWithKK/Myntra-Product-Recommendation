@@ -1,6 +1,6 @@
 output "lambda_url" {
-  description = "URL for the Lambda function"
-  value       = aws_lambda_function_url.lambda_ecr_function_url.function_url
+  description = "URL for the deployed Lambda function via API Gateway"
+  value       = aws_apigatewayv2_stage.default_stage.invoke_url
 }
 
 output "ecr_image_uri" {

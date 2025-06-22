@@ -107,7 +107,6 @@ jobs:
       - name: Get Lambda URL from Terraform Output
         id: tf_output
         run: |
-          cd terraform
           terraform output -raw lambda_url > lambda_url.txt
           echo "lambda_url=$(cat lambda_url.txt)" >> $GITHUB_OUTPUT
 
