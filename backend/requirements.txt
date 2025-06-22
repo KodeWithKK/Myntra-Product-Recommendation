@@ -5,6 +5,7 @@ flask-jwt-extended
 flask-pymongo
 flask-restful
 mangum
+asgiref
 numpy<2.0.0
 pandas<2.5.0
 python-dotenv

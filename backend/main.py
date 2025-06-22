@@ -1,5 +1,6 @@
 import os
 
+from asgiref.wsgi import WsgiToAsgi
 from database.db import init_app
 from dotenv import load_dotenv
 from flask import Flask, jsonify
@@ -26,8 +27,11 @@ def hello():
     return jsonify({"message": "Hello from Myntra"})
 
 
-# Create a Mangum handler for AWS Lambda compatibility
-handler = Mangum(app)
+# Convert Flask WSGI app to ASGI
+asgi_app = WsgiToAsgi(app)
+
+# Mangum expects ASGI app
+handler = Mangum(asgi_app)
 
 # Only run server if run locally
 # if __name__ == "__main__":
