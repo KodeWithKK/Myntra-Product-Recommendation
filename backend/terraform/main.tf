@@ -70,12 +70,13 @@ resource "aws_lambda_function" "lambda_ecr_function" {
   }
 }
 
-# --- REST API Gateway ---
+# --- API Gateway ---
 resource "aws_api_gateway_rest_api" "api" {
   name        = "myntra-prs-rest-api"
   description = "REST API for Flask backend via Lambda"
 }
 
+# --- /{proxy+} for root-level requests like /products ---
 resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   parent_id   = aws_api_gateway_rest_api.api.root_resource_id
@@ -98,6 +99,36 @@ resource "aws_api_gateway_integration" "proxy_integration" {
   uri                     = aws_lambda_function.lambda_ecr_function.invoke_arn
 }
 
+# --- /api/{proxy+} for /api/product/xxx etc ---
+resource "aws_api_gateway_resource" "api_prefix" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  path_part   = "api"
+}
+
+resource "aws_api_gateway_resource" "api_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  parent_id   = aws_api_gateway_resource.api_prefix.id
+  path_part   = "{proxy+}"
+}
+
+resource "aws_api_gateway_method" "api_proxy_method" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.api_proxy.id
+  http_method   = "ANY"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "api_proxy_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.api_proxy.id
+  http_method             = aws_api_gateway_method.api_proxy_method.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.lambda_ecr_function.invoke_arn
+}
+
+# --- Root path support (optional) ---
 resource "aws_api_gateway_method" "root_method" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_rest_api.api.root_resource_id
@@ -114,10 +145,12 @@ resource "aws_api_gateway_integration" "root_integration" {
   uri                     = aws_lambda_function.lambda_ecr_function.invoke_arn
 }
 
+# --- Deployment ---
 resource "aws_api_gateway_deployment" "api_deployment" {
   depends_on = [
     aws_api_gateway_integration.proxy_integration,
-    aws_api_gateway_integration.root_integration,
+    aws_api_gateway_integration.api_proxy_integration,
+    aws_api_gateway_integration.root_integration
   ]
   rest_api_id = aws_api_gateway_rest_api.api.id
 }
@@ -128,7 +161,7 @@ resource "aws_api_gateway_stage" "api_stage" {
   stage_name    = "prod"
 }
 
-# --- Lambda Permission for API Gateway ---
+# --- Permission for API Gateway to invoke Lambda ---
 resource "aws_lambda_permission" "api_permission" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
