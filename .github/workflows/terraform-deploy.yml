@@ -107,11 +107,11 @@ jobs:
       - name: Get Lambda URL from Terraform Output
         id: tf_output
         run: |
-          terraform output -raw lambda_url > lambda_url.txt
-          echo "lambda_url=$(cat lambda_url.txt)" >> $GITHUB_OUTPUT
+          terraform output -raw api_gateway_url > api_gateway_url.txt
+          echo "api_gateway_url=$(cat api_gateway_url.txt)" >> $GITHUB_OUTPUT
 
       - name: Deployment Summary
         run: |
           echo "### ✅ Deployment Successful!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "🌐 **Lambda URL**: [${{ steps.tf_output.outputs.lambda_url }}](${{ steps.tf_output.outputs.lambda_url }})" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 **Lambda URL**: [${{ steps.tf_output.outputs.api_gateway_url }}](${{ steps.tf_output.outputs.api_gateway_url }})" >> $GITHUB_STEP_SUMMARY
