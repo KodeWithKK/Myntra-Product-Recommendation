@@ -9,11 +9,19 @@ on:
 
 env:
   AWS_REGION: ap-south-1
+  TF_VAR_mongodb_uri: ${{ secrets.MONGODB_URI }}
+  TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
+  TF_VAR_jwt_secret_key: ${{ secrets.JWT_SECRET_KEY }}
+  TF_VAR_frontend_url: ${{ secrets.FRONTEND_URL }}
 
 jobs:
   destroy:
     name: Destroy Infrastructure
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend/terraform
 
     steps:
       - name: Checkout Code
@@ -33,8 +41,6 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        working-directory: terraform
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
-        working-directory: terraform
