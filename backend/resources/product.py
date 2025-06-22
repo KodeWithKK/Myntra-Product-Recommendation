@@ -65,6 +65,7 @@ class GetProduct(Resource):
                 product["_id"] = str(product["_id"])
 
                 similar_product_ids = give_recommendation(int(id))
+                print(f"Similar Product IDs for {id}: {similar_product_ids}")
                 similar_products = []
 
                 for p_id in similar_product_ids:

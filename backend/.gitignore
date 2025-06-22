@@ -2,7 +2,7 @@
 .env
 __pycache__
 
-data/precomputed
+
 .terraform
 .aws-sam
 terraform.tfvars

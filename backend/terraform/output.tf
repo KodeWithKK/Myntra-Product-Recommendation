@@ -1,6 +1,6 @@
 output "api_gateway_url" {
   description = "Public URL for Flask backend via API Gateway"
-  value       = aws_apigatewayv2_stage.default_stage.invoke_url
+  value       = "https://${aws_api_gateway_rest_api.api.id}.execute-api.ap-south-1.amazonaws.com/${aws_api_gateway_stage.api_stage.stage_name}/"
 }
 
 output "ecr_image_uri" {
